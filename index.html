@@ -12,8 +12,6 @@
 </head>
 <body>
 
-
-
     <script src="phaser.min.js"></script>
     <script>
         var game = new Phaser.Game(1280, 720, Phaser.AUTO, null, {
@@ -32,7 +30,7 @@
         // Variables that control game stats
         var scoreText;
         var score = 0;
-        var lives = 5;
+        var lives = 3;
         var textStyle = { font: '18px Arial', fill: '#0095DD'};
         var livesText;
         var lifeLostText;
@@ -56,10 +54,10 @@
 
         function create(){
             game.physics.startSystem(Phaser.Physics.ARCADE);
-            ball = game.add.sprite(game.world.width / 2, game.world.height - 25, 'ball');
+            ball = game.add.sprite(game.world.width / 2, game.world.height - 200, 'ball');
             ball.animations.add('wobble', [0, 1, 0, 2, 0, 1, 0, 2, 0], 24);
             ball.anchor.set(0.5);
-            paddle = game.add.sprite(game.world.width / 2, game.world.height - 5, 'paddle');
+            paddle = game.add.sprite(game.world.width / 2, game.world.height - 10, 'paddle');
             paddle.anchor.set(0.5, 1);  //Anchor in the middle of the paddle's width and at the bottom of its height
 
             game.physics.enable(ball, Phaser.Physics.ARCADE);
@@ -67,7 +65,7 @@
             ball.body.collideWorldBounds = true;    // Sets it to true so that it will not go out of the canvas
             ball.body.bounce.set(1);    //Sets it to 1 so that it bounce back from the walls
 
-            game.physics.arcade.checkCollision.down = false;
+            game.physics.arcade.checkCollision.down = false;    //Sets it to false so that the ball can fall down
             ball.checkWorldBounds = true;
             ball.events.onOutOfBounds.add(ballLeaveScreen, this);
 
@@ -165,11 +163,11 @@
             if(lives){
                 livesText.setText('Lives: ' + lives);
                 lifeLostText.visible = true;
-                ball.reset(game.world.width / 2, game.world.height - 25);
-                paddle.reset(game.world.width / 2, game.world.height - 5);
+                ball.reset(game.world.width / 2, game.world.height - 200);
+                paddle.reset(game.world.width / 2, game.world.height - 10);
                 game.input.onDown.addOnce(function(){
                     lifeLostText.visible = false;
-                    ball.body.velocity.set(500, -500);
+                    ball.body.velocity.set(0, 500);
                 }, this);
             } else {
                 alert('You lost, game over!');
@@ -179,7 +177,10 @@
 
         function ballHitPaddle(ball, paddle) {
             ball.animations.play('wobble');
-            ball.body.velocity.x = - 20*(paddle.x - ball.x);
+            ball.body.velocity.x = -20*(paddle.x - ball.x);
+            if(ball.body.velocity.x === 0){
+                ball.body.velocity.x = 500*20*(paddle.x - ball.x) * (paddle.x > ball.x ? -1 : 1);   //initial ball's velocity
+            }
             resetComboMultiplier();
         }
 
@@ -189,7 +190,7 @@
 
         function startGame(){
             startButton.destroy();
-            ball.body.velocity.set(500, -500);
+            ball.body.velocity.set(0, 500);
             playing = true;
         }
 
