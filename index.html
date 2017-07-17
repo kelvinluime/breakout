@@ -36,8 +36,10 @@
         var textStyle = { font: '18px Arial', fill: '#0095DD'};
         var livesText;
         var lifeLostText;
+        var playing = false;    //Becomes true when startButton is clicked
+        var comboMultiplier = 1;
 
-        var playing = false;
+        //Buttons
         var startButton;
 
         function preload(){
@@ -80,7 +82,7 @@
             livesText = game.add.text(game.world.width - 5, 5, 'Lives: ' + lives, textStyle)
             livesText.anchor.set(1, 0);
             lifeLostText = game.add.text(game.world.width / 2, game.world.height / 2,
-            'YOU\' HAVE LOST A LIFE!!! Click screen to continue.', textStyle);
+            'YOU\'VE LOST A LIFE!!! Click screen to continue.', textStyle);
             lifeLostText.anchor.set(0.5);
             lifeLostText.visible = false;
 
@@ -91,17 +93,18 @@
 
         }
 
+        // Initialize brick fields
         function initBricks() {
             brickInfo = {
                 width: 50,
                 height: 20,
                 count: {
                     row: 4,
-                    col: 20
+                    col: 18
                 },
                 offset: {
-                    top: 50,
-                    left: 60
+                    top: 150,
+                    left: 120
                 },
                 padding: 10
             };
@@ -136,7 +139,12 @@
             }, this);
             killTween.start();
 
-            score += 10;
+            //Updates game's stats
+            score += 10 * comboMultiplier;
+            if(comboMultiplier > 1){
+                displayMultiplier();
+            }
+            comboMultiplier++;
             scoreText.setText('Points: ' + score);
 
             var count_alive = 0;
@@ -153,6 +161,7 @@
 
         function ballLeaveScreen(){
             lives--;
+            resetComboMultiplier();
             if(lives){
                 livesText.setText('Lives: ' + lives);
                 lifeLostText.visible = true;
@@ -171,12 +180,26 @@
         function ballHitPaddle(ball, paddle) {
             ball.animations.play('wobble');
             ball.body.velocity.x = - 20*(paddle.x - ball.x);
+            resetComboMultiplier();
+        }
+
+        function resetComboMultiplier(){
+            comboMultiplier = 1;
         }
 
         function startGame(){
             startButton.destroy();
             ball.body.velocity.set(500, -500);
             playing = true;
+        }
+
+        //Displays multiplier to the player when ball hits more than once
+        function displayMultiplier(){
+            var multiplierText = game.add.text(ball.x, ball.y, 'x'+comboMultiplier, textStyle);
+            game.time.events.add(1000, function(){
+                game.add.tween(multiplierText).to({x:0, y:0}, 1500, Phaser.Easing.Linear.None, true);   //Text moves to x=0 & y=0
+                game.add.tween(multiplierText).to({alpha: 0}, 1500, Phaser.Easing.Linear.None, true);
+            }, this);
         }
 
     </script>
