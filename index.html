@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Breakout</title>
+    <title>The Never Ending Breakout</title>
     <style>
         * {
             padding: 0;
@@ -88,18 +88,20 @@
             startButton = game.add.button(game.world.width * 0.5, game.world.height * 0.5, 'button', startGame, this,
             1, 0, 2);  // "1, 0, 2" are the frames that will be used for the over, out and down events
             startButton.anchor.set(0.5);    //Anchors at the center of the width
-
         }
 
         // Initialize brick fields
         function initBricks() {
+            var numOfRows = 6;
+            var numberOfCols = 18;
             brickInfo = {
                 width: 50,
                 height: 20,
                 count: {
-                    row: 4,
-                    col: 18
+                    row: numOfRows,
+                    col: numberOfCols
                 },
+                numberOfBricks: numOfRows * numberOfCols,
                 offset: {
                     top: 150,
                     left: 120
@@ -118,12 +120,13 @@
                     bricks.add(newBrick);
                 }
             }
+            console.log("Number of bricks: "+brickInfo.numberOfBricks);
         }
 
         function update() {
             game.physics.arcade.collide(ball, paddle, ballHitPaddle);  //Enables collision detection between the ball and the paddle
             game.physics.arcade.collide(ball, bricks, ballHitBrick);    // Third parameter is the function executed
-            if (playing) {
+            if(playing) {
                 paddle.x = game.input.x || game.world.width * 0.5;  //An input position is not yet defined at the beginning
             }
         }
@@ -146,14 +149,40 @@
             scoreText.setText('Points: ' + score);
 
             var count_alive = 0;
-            for(var i = 0; i < bricks.children.length; i++){    //Not an effective mechanism
+            for(var i = 0; i < bricks.children.length; i++){
                 if(bricks.children[i].alive === true){
                     count_alive++;
                 }
             }
-            if(count_alive === 0){
+            if(count_alive === 0) {
                 alert('You won the game, congratulations');
                 location.reload();
+            }
+            brickInfo.numberOfBricks--;
+            respawnBrick();
+        }
+
+        //Todo: when ball hits the brick, re-spawn another brick in a random location (DONE)
+        //Todo: Based of comboMultiplier, re-spawn 2 blocks if comboMultiplier > 10, 3 if > 20, etc.. (DONE)
+        //Todo: add effect when re-spawning
+        function respawnBrick(){
+            var respawnFactor = Math.floor(comboMultiplier / 10 +
+                brickInfo.count.row * brickInfo.count.col / brickInfo.numberOfBricks);
+            for(var i = 0; i < respawnFactor; i++) {
+                var randomRow = Math.floor(Math.random() * brickInfo.count.row);
+                var randomCol = Math.floor(Math.random() * brickInfo.count.col);
+                if (bricks.children[randomRow * randomCol].alive === false) {
+                    console.log("row: " + randomRow + ", col: " + randomCol);
+                    var brickX = randomCol * (brickInfo.padding + brickInfo.width) + brickInfo.offset.left;
+                    var brickY = randomRow * (brickInfo.padding + brickInfo.height) + brickInfo.offset.top;
+                    newBrick = game.add.sprite(brickX, brickY, 'brick');
+                    game.physics.enable(newBrick, Phaser.Physics.ARCADE);
+                    newBrick.body.immovable = true;
+                    newBrick.anchor.set(0.5);
+                    bricks.add(newBrick);
+
+                    brickInfo.numberOfBricks++;
+                }
             }
         }
 
@@ -170,16 +199,16 @@
                     ball.body.velocity.set(0, 500);
                 }, this);
             } else {
-                alert('You lost, game over!');
+                alert('GAME OVER :(\nYour score is: '+score);
                 location.reload();
             }
         }
 
         function ballHitPaddle(ball, paddle) {
             ball.animations.play('wobble');
-            ball.body.velocity.x = -20*(paddle.x - ball.x);
+            ball.body.velocity.x = -15*(paddle.x - ball.x);
             if(ball.body.velocity.x === 0){
-                ball.body.velocity.x = 500*20*(paddle.x - ball.x) * (paddle.x > ball.x ? -1 : 1);   //initial ball's velocity
+                ball.body.velocity.x = 500*15*(paddle.x - ball.x) * (paddle.x > ball.x ? -1 : 1);   //initial ball's velocity
             }
             resetComboMultiplier();
         }
