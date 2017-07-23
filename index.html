@@ -166,13 +166,13 @@
         //Todo: Based of comboMultiplier, re-spawn 2 blocks if comboMultiplier > 10, 3 if > 20, etc.. (DONE)
         //Todo: add effect when re-spawning
         function respawnBrick(){
-            var respawnFactor = Math.floor(comboMultiplier / 10 +
-                brickInfo.count.row * brickInfo.count.col / brickInfo.numberOfBricks);
+            if(comboMultiplier > 100) return;
+            var respawnFactor = Math.floor((comboMultiplier / 10) *
+                (brickInfo.count.row * brickInfo.count.col / brickInfo.numberOfBricks));
             for(var i = 0; i < respawnFactor; i++) {
                 var randomRow = Math.floor(Math.random() * brickInfo.count.row);
                 var randomCol = Math.floor(Math.random() * brickInfo.count.col);
                 if (bricks.children[randomRow * randomCol].alive === false) {
-                    console.log("row: " + randomRow + ", col: " + randomCol);
                     var brickX = randomCol * (brickInfo.padding + brickInfo.width) + brickInfo.offset.left;
                     var brickY = randomRow * (brickInfo.padding + brickInfo.height) + brickInfo.offset.top;
                     newBrick = game.add.sprite(brickX, brickY, 'brick');
